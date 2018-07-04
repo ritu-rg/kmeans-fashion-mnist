@@ -1,0 +1,74 @@
+---
+title: "fashion_kmeans"
+author: "Ritu"
+date: "December 10, 2017"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+## Download data file: fashion-mnist_train.csv
+## Kaggle https://www.kaggle.com/zalando-research/fashionmnist/data
+
+# 1.0 Call 
+rm(list = ls()) ; gc()
+library(vcd)     # For association plots
+library(readr)   # read_csv() is fast read facility
+
+# 2.0 Read and explore Data 
+setwd("C:\\Users\\Ritu\\Documents\\Learning\\EL\\11-11-12\\Exercises")
+fashion_mnist<-read_csv("fashion-mnist_train.csv")
+View(fashion_mnist)
+dim(fashion_mnist)
+max(fashion_mnist)
+min(fashion_mnist)
+
+# 3.0 View nine images
+# 3.1 Create an R-graphics device
+windows()
+
+# 3.2 Divide plot-space, into 3 X 3 panels
+#      Lay fig row-wise: mfrow()->M(m)ulti F(f)igure 
+#      mar = rep(0,4) sets c(bottom, left, top, right)
+#      all margins to zero to make space
+par(mfrow=c(3,3), mar = rep(0, 4)) 
+
+# 3.3 Display images usin image() from images 1 to 9
+#     Flattened image is reshaped row-wise in 28 X 28 matrix
+#     1st column is image label & not part of image
+lapply(1:9, 
+       function(x) image(
+         matrix(unlist(fashion_mnist[x,-1]),ncol = 28,byrow = T),
+         col=grey.colors(255),    # Select 255 grey levels
+         axes = FALSE
+       )
+)
+
+
+# 4. Scale all data between 0 and 1
+#    Colour values vary from 0 to 255
+data<-fashion_mnist[,-1]/255
+
+# 5. Start kmeans modeling
+#    Takes around 15 minutes
+start.time <- Sys.time()
+cl<-kmeans(fashion_mnist[,-1], centers = 10, nstart = 10, iter.max = 50)
+Sys.time() - start.time
+
+# 6. Examine cluster
+cl
+
+# 7. Create a dataframe of clustered-IDs (1to 10) and
+#    actual labels (0 to 9) given in the data
+df<-data.frame(predicted = cl$cluster, actual = fashion_mnist$label)
+
+# 8. Create an association plot to see association
+#     Finds association between predicted and actual values
+tb<-table(pred=df$predicted,actual=df$actual)
+assoc(tb, shade = T, labeling = labeling_values)
+###########################
+```
+
